@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -119,7 +120,7 @@ namespace Microsoft.MixedReality.WebRTC
             {
                 return string.Empty;
             }
-            string ret = string.Join("\n", Urls);
+            string ret = string.Join("\n", Urls.ToArray());
             if (!string.IsNullOrEmpty(TurnUserName))
             {
                 ret += $"\nusername:{TurnUserName}";
@@ -997,7 +998,7 @@ namespace Microsoft.MixedReality.WebRTC
                     {
                         nativeConfig = new PeerConnectionInterop.PeerConnectionConfiguration
                         {
-                            EncodedIceServers = string.Join("\n\n", config.IceServers),
+                            EncodedIceServers = string.Join("\n\n", config.IceServers.Select(n => n.ToString()).ToArray()),
                             IceTransportType = config.IceTransportType,
                             BundlePolicy = config.BundlePolicy,
                             SdpSemantic = config.SdpSemantic,
@@ -1032,7 +1033,7 @@ namespace Microsoft.MixedReality.WebRTC
                         {
                             // Cancelled by token
                             _nativePeerhandle.Close();
-                            throw new OperationCanceledException(token);
+                            throw new OperationCanceledException(token.ToString());
                         }
                         if (!_selfHandle.IsAllocated)
                         {

@@ -3,14 +3,12 @@
   <!-- This needs to go first, before Microsoft.Common.props is imported  -->
   <PropertyGroup>
     <BaseIntermediateOutputPath>..\..\build\Microsoft.MixedReality.WebRTC\$(Configuration)</BaseIntermediateOutputPath>
-    <OutputPath>..\..\bin\netstandard2.0\$(Configuration)\</OutputPath>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>..\..\bin\$(Configuration)\$(TargetFramework)</OutputPath>
   </PropertyGroup>
 
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>7.3</LangVersion>
     <Company>Microsoft</Company>
@@ -27,6 +25,22 @@
     <Copyright>Copyright (c) Microsoft Corporation</Copyright>
     <PackageTags>webrtc video audio streaming</PackageTags>
     <DocumentationFile>..\..\bin\$(TargetFramework)\$(Configuration)\Microsoft.MixedReality.WebRTC.xml</DocumentationFile>
+    <IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows>
+    <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
+    <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsWindows)'=='true'">
+    <TargetFrameworks>netstandard2.0;net20;net472</TargetFrameworks>
+    <DefineConstants>Windows</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsOSX)'=='true'">
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants>OSX</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsLinux)'=='true'">
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants>Linux</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,9 +48,25 @@
     <EmbeddedResource Remove="obj\**" />
     <None Remove="obj\**" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="x64\mrwebrtc.dll" />
+    <None Remove="x86\mrwebrtc.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="x64\mrwebrtc.dll" />
+    <EmbeddedResource Include="x86\mrwebrtc.dll" />
+  </ItemGroup>
   
   <ItemGroup>
     <NativeUnityPluginSourceFiles Include="$(OutputPath)\Microsoft.MixedReality.WebRTC.dll;$(OutputPath)\Microsoft.MixedReality.WebRTC.pdb" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="MonoLib" Condition="'$(TargetFramework)' == 'net20'">
+      <HintPath>..\..\..\Vcms\Verismic.Common\Libraries\Builds\MonoLib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

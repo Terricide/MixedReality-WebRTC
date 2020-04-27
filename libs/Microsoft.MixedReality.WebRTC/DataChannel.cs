@@ -170,10 +170,13 @@ namespace Microsoft.MixedReality.WebRTC
         /// </summary>
         internal void DestroyNative()
         {
-            _nativeHandle = IntPtr.Zero;
-            State = ChannelState.Closed;
-            Utils.ReleaseWrapperRef(_argsRef);
-            _argsRef = IntPtr.Zero;
+            if (State != ChannelState.Closed)
+            {
+                _nativeHandle = IntPtr.Zero;
+                State = ChannelState.Closed;
+                Utils.ReleaseWrapperRef(_argsRef);
+                _argsRef = IntPtr.Zero;
+            }
         }
 
         /// <summary>
