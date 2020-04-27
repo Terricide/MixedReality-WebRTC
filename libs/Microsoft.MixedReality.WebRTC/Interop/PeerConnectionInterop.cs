@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,6 +80,37 @@ namespace Microsoft.MixedReality.WebRTC.Interop
         public delegate void VideoCaptureDeviceEnumCompletedCallbackImpl();
         public delegate void VideoCaptureFormatEnumCallbackImpl(uint width, uint height, double framerate, uint fourcc);
         public delegate void VideoCaptureFormatEnumCompletedCallbackImpl(Exception e);
+
+        static PeerConnectionInterop()
+        {
+            var dir = IntPtr.Size == 8 ? "x64" : "x86";
+
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            var file = Path.Combine(dir, Utils.dllPath) + ".dll";
+
+            bool fileExists = File.Exists(file);
+
+            if (!fileExists)
+            {
+                var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Microsoft.MixedReality.WebRTC." + dir + ".mrwebrtc.dll");
+                using (var fs = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete))
+                {
+                    stream.CopyTo(fs);
+                }
+            }
+
+            if (IntPtr.Zero == LoadLibrary(file))
+            {
+                throw new Exception("Failed to load: " + file);
+            }
+        }
+
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+        static extern IntPtr LoadLibrary(string lpFileName);
 
         public class EnumVideoCaptureDeviceWrapper
         {
@@ -305,19 +337,19 @@ namespace Microsoft.MixedReality.WebRTC.Interop
             }
             else if (list is List<PeerConnection.AudioSenderStats> audioSenderStatsList)
             {
-                audioSenderStatsList.Add(Marshal.PtrToStructure<PeerConnection.AudioSenderStats>(statsObject));
+                audioSenderStatsList.Add((PeerConnection.AudioSenderStats)Marshal.PtrToStructure(statsObject,typeof(PeerConnection.AudioSenderStats)));
             }
             else if (list is List<PeerConnection.AudioReceiverStats> audioReceiverStatsList)
             {
-                audioReceiverStatsList.Add(Marshal.PtrToStructure<PeerConnection.AudioReceiverStats>(statsObject));
+                audioReceiverStatsList.Add((PeerConnection.AudioReceiverStats)Marshal.PtrToStructure(statsObject, typeof(PeerConnection.AudioReceiverStats)));
             }
             else if (list is List<PeerConnection.VideoSenderStats> videoSenderStatsList)
             {
-                videoSenderStatsList.Add(Marshal.PtrToStructure<PeerConnection.VideoSenderStats>(statsObject));
+                videoSenderStatsList.Add((PeerConnection.VideoSenderStats)Marshal.PtrToStructure(statsObject, typeof(PeerConnection.VideoSenderStats)));
             }
             else if (list is List<PeerConnection.VideoReceiverStats> videoReceiverStatsList)
             {
-                videoReceiverStatsList.Add(Marshal.PtrToStructure<PeerConnection.VideoReceiverStats>(statsObject));
+                videoReceiverStatsList.Add((PeerConnection.VideoReceiverStats)Marshal.PtrToStructure(statsObject, typeof(PeerConnection.VideoReceiverStats)));
             }
             else if (list is List<PeerConnection.TransportStats> transportStatsList)
             {

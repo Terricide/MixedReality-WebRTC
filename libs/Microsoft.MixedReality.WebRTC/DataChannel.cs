@@ -161,10 +161,13 @@ namespace Microsoft.MixedReality.WebRTC
         /// </summary>
         public void Dispose()
         {
-            State = ChannelState.Closing;
-            PeerConnection.RemoveDataChannel(_interopHandle);
-            _interopHandle = IntPtr.Zero;
-            State = ChannelState.Closed;
+            if (State != ChannelState.Closed)
+            {
+                State = ChannelState.Closing;
+                PeerConnection.RemoveDataChannel(_interopHandle);
+                _interopHandle = IntPtr.Zero;
+                State = ChannelState.Closed;
+            }
             _handle.Free();
             GC.SuppressFinalize(this);
         }
